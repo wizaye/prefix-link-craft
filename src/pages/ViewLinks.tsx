@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -22,12 +22,30 @@ import { toast } from "sonner";
 
 export default function ViewLinks() {
   const navigate = useNavigate();
-  const [links, setLinks] = useState<ShortLink[]>(storage.getLinks());
+  const [links, setLinks] = useState<ShortLink[]>([]);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [editLink, setEditLink] = useState<ShortLink | null>(null);
   const [editAlias, setEditAlias] = useState("");
   const [editPrefix, setEditPrefix] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+
+  useEffect(() => {
+    const loadLinks = async () => {
+      const req = indexedDB.open('PrefixLinkDB', 1);
+      req.onsuccess = () => {
+        const db = req.result;
+        const tx = db.transaction('links', 'readonly');
+        const store = tx.objectStore('links');
+        const getAll = store.getAll();
+
+        getAll.onsuccess = () => {
+          const data = getAll.result as ShortLink[];
+          setLinks(data);
+        };
+      };
+    };
+    loadLinks();
+  }, []);
 
   const filteredLinks = links.filter(link => 
     link.originalUrl.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -37,7 +55,7 @@ export default function ViewLinks() {
 
   const handleDelete = (id: string) => {
     storage.deleteLink(id);
-    setLinks(storage.getLinks());
+    setLinks(prev => prev.filter(link => link.id !== id));
     setDeleteId(null);
     toast.success("Link deleted successfully");
   };
@@ -47,40 +65,58 @@ export default function ViewLinks() {
     setEditAlias(link.alias);
     setEditPrefix(link.prefix);
   };
+const handleSaveEdit = () => {
+  if (!editLink || !editAlias.trim()) {
+    toast.error("Alias cannot be empty");
+    return;
+  }
 
-  const handleSaveEdit = () => {
-    if (!editLink || !editAlias.trim()) {
-      toast.error("Alias cannot be empty");
-      return;
-    }
+  if (!editPrefix.trim()) {
+    toast.error("Prefix cannot be empty");
+    return;
+  }
 
-    if (!editPrefix.trim()) {
-      toast.error("Prefix cannot be empty");
-      return;
-    }
+  const existingLink = links.find(link =>
+    link.prefix.toLowerCase() === editPrefix.toLowerCase() &&
+    link.alias.toLowerCase() === editAlias.toLowerCase() &&
+    link.id !== editLink.id
+  );
 
-    // Check if the combination of prefix and alias already exists (excluding current link)
-    const existingLink = links.find(link => 
-      link.prefix.toLowerCase() === editPrefix.toLowerCase() && 
-      link.alias.toLowerCase() === editAlias.toLowerCase() && 
-      link.id !== editLink.id
-    );
-    
-    if (existingLink) {
-      toast.error("This prefix/alias combination already exists");
-      return;
-    }
+  if (existingLink) {
+    toast.error("This prefix/alias combination already exists");
+    return;
+  }
 
-    storage.updateLink(editLink.id, { 
-      alias: editAlias.trim(),
-      prefix: editPrefix.trim()
-    });
-    setLinks(storage.getLinks());
-    setEditLink(null);
-    setEditAlias("");
-    setEditPrefix("");
-    toast.success("Link updated successfully");
+  const updated: ShortLink = {
+    ...editLink,
+    alias: editAlias.trim(),
+    prefix: editPrefix.trim(),
+    id: `${editPrefix.trim()}/${editAlias.trim()}` // 🔥 important
   };
+
+  // Update IndexedDB
+  const req = indexedDB.open('PrefixLinkDB', 1);
+  req.onsuccess = () => {
+    const db = req.result;
+    const tx = db.transaction('links', 'readwrite');
+    const store = tx.objectStore('links');
+
+    // 1. Delete old entry by old ID
+    store.delete(editLink.id);
+
+    // 2. Insert updated link with new ID
+    store.put(updated);
+  };
+
+  // Update UI state
+  setLinks(prev => prev.map(link => link.id === editLink.id ? updated : link));
+  setEditLink(null);
+  setEditAlias("");
+  setEditPrefix("");
+  toast.success("Link updated successfully");
+};
+
+
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -91,7 +127,7 @@ export default function ViewLinks() {
     window.open(url, '_blank');
   };
 
-  return (
+ return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 p-4">
       <div className="max-w-6xl mx-auto space-y-6 pt-16">
         {/* Header */}
