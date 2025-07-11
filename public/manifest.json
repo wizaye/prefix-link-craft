@@ -1,11 +1,17 @@
 {
-    "manifest_version": 3,
-    "name": "URL SHORTENER",
-    "description": "A tool for creating and managing shortened URLs",
-    "version": "1.0.0",
-    "action": {
-        "default_popup": "index.html",
-        "default_popup_width": 1200,
-        "default_popup_height": 1200
-    }
+  "manifest_version": 3,
+  "name": "URL SHORTENER",
+  "description": "A tool for creating and managing shortened URLs",
+  "version": "1.0.0",
+  "permissions": ["storage"],
+  "host_permissions": ["<all_urls>"],
+  "action": {
+    "default_popup": "index.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "omnibox": {
+    "keyword": "go"
+  }
 }
