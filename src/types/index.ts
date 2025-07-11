@@ -11,4 +11,6 @@ export interface ShortLink {
 export interface UserSettings {
   preferredPrefix: string;
   isFirstTime: boolean;
+  usePrefixBehavior: 'preferred' | 'lastUsed';
+  lastUsedPrefix?: string;
 }

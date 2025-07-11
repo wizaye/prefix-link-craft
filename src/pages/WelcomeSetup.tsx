@@ -31,6 +31,8 @@ export default function WelcomeSetup({ onComplete }: WelcomeSetupProps) {
     storage.saveSettings({
       preferredPrefix: prefix.trim(),
       isFirstTime: false,
+      usePrefixBehavior: 'preferred',
+      lastUsedPrefix: prefix.trim(),
     });
     
     toast.success("Setup completed successfully!");

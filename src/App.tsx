@@ -10,6 +10,7 @@ import WelcomeSetup from "./pages/WelcomeSetup";
 import Welcome from "./pages/Welcome";
 import ViewLinks from "./pages/ViewLinks";
 import CreateLink from "./pages/CreateLink";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -59,6 +60,7 @@ const App = () => {
             <Route path="/" element={<Welcome />} />
             <Route path="/links" element={<ViewLinks />} />
             <Route path="/create" element={<CreateLink />} />
+            <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

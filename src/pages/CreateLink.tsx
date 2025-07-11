@@ -13,8 +13,15 @@ export default function CreateLink() {
   const navigate = useNavigate();
   const settings = storage.getSettings();
   
+  const getInitialPrefix = () => {
+    if (settings.usePrefixBehavior === 'lastUsed' && settings.lastUsedPrefix) {
+      return settings.lastUsedPrefix;
+    }
+    return settings.preferredPrefix;
+  };
+  
   const [originalUrl, setOriginalUrl] = useState("");
-  const [prefix, setPrefix] = useState(settings.preferredPrefix);
+  const [prefix, setPrefix] = useState(getInitialPrefix());
   const [alias, setAlias] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [createdLink, setCreatedLink] = useState<ShortLink | null>(null);
@@ -79,6 +86,15 @@ export default function CreateLink() {
     };
 
     storage.addLink(newLink);
+    
+    // Update last used prefix if behavior is set to lastUsed
+    if (settings.usePrefixBehavior === 'lastUsed') {
+      storage.saveSettings({
+        ...settings,
+        lastUsedPrefix: prefix.trim(),
+      });
+    }
+    
     setCreatedLink(newLink);
     setIsLoading(false);
     toast.success("Short link created successfully!");
@@ -92,8 +108,11 @@ export default function CreateLink() {
   };
 
   const resetForm = () => {
+    const currentSettings = storage.getSettings();
     setOriginalUrl("");
-    setPrefix(settings.preferredPrefix);
+    setPrefix(currentSettings.usePrefixBehavior === 'lastUsed' && currentSettings.lastUsedPrefix 
+      ? currentSettings.lastUsedPrefix 
+      : currentSettings.preferredPrefix);
     setAlias("");
     setCreatedLink(null);
     setCopied(false);

@@ -42,9 +42,19 @@ export const storage = {
   getSettings: (): UserSettings => {
     try {
       const settings = localStorage.getItem(STORAGE_KEYS.SETTINGS);
-      return settings ? JSON.parse(settings) : { preferredPrefix: '', isFirstTime: true };
+      return settings ? JSON.parse(settings) : { 
+        preferredPrefix: '', 
+        isFirstTime: true, 
+        usePrefixBehavior: 'preferred',
+        lastUsedPrefix: ''
+      };
     } catch {
-      return { preferredPrefix: '', isFirstTime: true };
+      return { 
+        preferredPrefix: '', 
+        isFirstTime: true, 
+        usePrefixBehavior: 'preferred',
+        lastUsedPrefix: ''
+      };
     }
   },
 

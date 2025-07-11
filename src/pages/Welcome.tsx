@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { storage } from "@/utils/storage";
-import { Link, Eye, Plus, BarChart3 } from "lucide-react";
+import { Link, Eye, Plus, BarChart3, Settings } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function Welcome() {
@@ -15,6 +15,16 @@ export default function Welcome() {
       <div className="max-w-4xl mx-auto space-y-8 pt-16">
         {/* Header */}
         <div className="text-center space-y-4">
+          <div className="flex justify-end">
+            <Button
+              variant="ghost"
+              onClick={() => navigate('/settings')}
+              className="gap-2"
+            >
+              <Settings className="w-4 h-4" />
+              Settings
+            </Button>
+          </div>
           <div className="mx-auto w-20 h-20 bg-gradient-to-br from-primary to-primary-glow rounded-3xl flex items-center justify-center shadow-xl">
             <Link className="w-10 h-10 text-primary-foreground" />
           </div>
@@ -26,7 +36,7 @@ export default function Welcome() {
               Your personal URL shortener
             </p>
             <p className="text-sm text-muted-foreground">
-              Using prefix: <span className="font-medium text-primary">{settings.preferredPrefix}</span>
+              Preferred prefix: <span className="font-medium text-primary">{settings.preferredPrefix}</span>
             </p>
           </div>
         </div>
